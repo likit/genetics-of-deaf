@@ -16,6 +16,10 @@ find-intersection:
 		| cut -f 1,2,4,5,6,15,16 | python protocols/diff-snps.py
 
 run-blat:
+	# run on a computer cluster
+	# qsub -v genome=human_g1k_v37.fasta,input=UF02_S6_L001_R2_001.fasta,outdir=mappings protocols/blat_job.sh
+	#
+	# run on a stand alone computer
 	blat -dots=1000 -noHead human_g1k_v37.fasta DF5-70_S66_L001_R1_001.fasta DF5-70_S66_L001_R1_001.fasta.psl
 	sort -k 10 DF5-70_S66_L001_R1_001.fasta.psl > DF5-70_S66_L001_R1_001.fasta.sorted.psl
 	pslReps -nohead -noIntrons -singleHit DF5-70_S66_L001_R1_001.fasta.sorted.psl DF5-70_S66_L001_R1_001.fasta.flt.psl info
@@ -30,3 +34,7 @@ merge-insert:
 	> DF5-70_S66_L001_R1_001.fastq.gz.insert-size.sorted.bed
 	mergeBed -n -i DF5-70_S66_L001_R1_001.fastq.gz.insert-size.sorted.bed \
 	> DF5-70_S66_L001_R1_001.fastq.gz.insert-size.merged.bed
+
+convert-fastq-to-fasta:
+	python protocols/fastq-to-fasta.py UF02_S6_L001_R1_001.fastq.gz > UF02_S6_L001_R1_001.fasta
+	python protocols/fastq-to-fasta.py UF02_S6_L001_R2_001.fastq.gz > UF02_S6_L001_R2_001.fasta
