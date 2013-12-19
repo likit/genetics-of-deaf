@@ -4,10 +4,11 @@ input=$2
 outdir=$3
 
 # Run BLAT
-test -d $outdir && cd $outdir || exit 1
-~/blat -dots=1000 -noHead $genome $input $input.psl
+test -d $outdir || exit 1
+~/blat -dots=1000 -noHead $genome $input $outdir/$input.psl
 
 # Sort and select alignments
+cd $outdir
 sorted_psl=$(basename $input.psl .psl).sorted.psl
 filtered_psl=$(basename $input.psl .psl).flt.psl
 
