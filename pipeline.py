@@ -24,11 +24,11 @@ def run_blat(infile):
 
     outfile = query + '.psl'
 
-    # subprocess.check_call(['blat', db, query, outfile], shell=True)
+    subprocess.check_call(['blat', db, query, outfile], shell=True)
 
     print >> sys.stderr, 'removing unzipped file'
     if zipfile:
-        os.rm(query)  # delete unzipped file
+        os.remove(query)  # delete unzipped file
 
 
 def process_blat_alns(pslfile):
@@ -67,7 +67,7 @@ def main():
     blat_command = 'blat %s %s %s' % (db, infile, infile + '.psl')
     print >> sys.stderr, 'Running BLAT with:'
     print >> sys.stderr, '\t' + blat_command
-    run_blat(infile)
+    run_blat(infile, db)
 
 
 if __name__=='__main__':
