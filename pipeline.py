@@ -3,6 +3,7 @@
 import sys
 import os
 import subprocess
+import gzip
 
 
 def run_blat(infile):
