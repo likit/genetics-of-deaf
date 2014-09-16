@@ -6,7 +6,7 @@ import subprocess
 import gzip
 
 
-def run_blat(infile):
+def run_blat(infile, db):
     '''runs BLAT from a command line'''
 
     if infile.endswith('.gz'):
@@ -18,18 +18,22 @@ def run_blat(infile):
         infile = open(infile)
 
     op = open(query, 'w')
-    for n, line in enumerate(infile):
-        if n == 0 or n == 1:
+    n = 0
+    for line in infile:
+        if n == 0:
+            op.write(line.replace('@', '>'))
+        elif n == 1:
             op.write(line)
+        if n < 3:
+            n += 1
+        else:
+            n = 0
     op.close()
 
     outfile = query + '.psl'
 
-    subprocess.check_call(['blat', db, query, outfile], shell=True)
-
-    print >> sys.stderr, 'removing unzipped file'
-    if zipfile:
-        os.remove(query)  # delete unzipped file
+    command = 'blat -noHead %s %s %s' % (db, query, outfile)
+    subprocess.check_call(command, shell=True)
 
 
 def process_blat_alns(pslfile):
