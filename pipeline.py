@@ -9,18 +9,19 @@ import gzip
 def run_blat(infile):
     '''runs BLAT from a command line'''
 
-    zipfile = False
     if infile.endswith('.gz'):
+        query = infile.rstrip('.gz') + '.fa' #  create fasta file
         print >> sys.stderr, 'Gunzipping file...'
-        query = infile.rstrip('.gz')
-        op = open(query, 'w')
         infile = gzip.open(infile) # gunzip input file
-        for line in infile:
-            op.write(line)
-        op.close()
-        zipfile = True
     else:
-        query = infile
+        query = infile + '.fa'  # create fasta file
+        infile = open(infile)
+
+    op = open(query, 'w')
+    for n, line in enumerate(infile):
+        if n == 0 or n == 1:
+            op.write(line)
+    op.close()
 
     outfile = query + '.psl'
 
