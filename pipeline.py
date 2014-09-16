@@ -7,7 +7,7 @@ import gzip
 
 
 def run_blat(infile):
-    '''run BLAT from command line'''
+    '''runs BLAT from a command line'''
 
     zipfile = False
     if infile.endswith('.gz'):
@@ -29,6 +29,25 @@ def run_blat(infile):
     print >> sys.stderr, 'removing unzipped file'
     if zipfile:
         os.rm(query)  # delete unzipped file
+
+
+def process_blat_alns(pslfile):
+    '''sorts and filters BLAT alignments'''
+
+    sorted_file, ext = os.path.sepext(pslfile)
+    sorted_file += '.sorted' + ext
+
+    print >> sys.stderr, 'Sorting alignments...'
+    command = 'sort -k 10 %s > %s' % (pslfile, sorted_file)
+    subprocess.check_call(command, shell=True)
+
+    filtered_file, ext = os.path.sepext(pslfile)
+    filtered_file += '.filtered' + ext
+
+    print >> sys.stderr, 'Filtering alignments...'
+    command = 'pslReps -nohead -noIntrons -singleHit %s %s info' % \
+            (sorted_file, filtered_file)
+    subprocess.check_all(command, shell=True)
 
 def main():
     '''Main function'''
