@@ -4,6 +4,7 @@ import sys
 import os
 import subprocess
 import gzip
+import find_indel
 
 
 def run_blat(infile, db):
@@ -34,6 +35,7 @@ def run_blat(infile, db):
 
     command = 'blat -noHead %s %s %s' % (db, query, outfile)
     subprocess.check_call(command, shell=True)
+    return outfile
 
 
 def process_blat_alns(pslfile):
@@ -58,23 +60,37 @@ def main():
     '''Main function'''
 
     try:
-        infile = sys.argv[1]
-        db = sys.argv[2]
+        infile1 = sys.argv[1]
+        infile2 = sys.argv[2]
+        db = sys.argv[3]
+        samfile = sys.argv[4]
+        expand = int(sys.argv[5])
+        try:
+            chrom = sys.argv[6]
+        except IndexError:
+            chrom = None
     except IndexError:
         print >> sys.stderr, 'Usage:'
         print >> sys.stderr, \
-                '\tpython %s <reads.fq or reads.fq.gz> <genome.fa>' \
-                % sys.argv[0]
+            '\tpython %s <reads.fq(.gz)> <genome.fa>' \
+            ' <samfile> <expand> [chrom]' \
+            % os.path.split(sys.argv[0])[-1]
         sys.exit(1)
-    else:
-        print >> sys.stderr, 'The output file is %s.psl' % sys.argv[1]
 
-    blat_command = 'blat %s %s %s' % (db, infile, infile + '.psl')
-    print >> sys.stderr, 'Running BLAT with:'
-    print >> sys.stderr, '\t' + blat_command
-    run_blat(infile, db)
+    # blat_command = 'blat %s %s %s' % (db, infile1, infile1 + '.psl')
+    # print >> sys.stderr, 'Running', blat_command
+    # outfile1 = run_blat(infile1, db)
+    # blat_command = 'blat %s %s %s' % (db, infile2, infile2 + '.psl')
+    # print >> sys.stderr, 'Running', blat_command
+    # outfile2 = run_blat(infile2, db)
+    outfile1 = 'sample59_nonconcordantreads.1.fa.psl'
+    outfile2 = 'sample59_nonconcordantreads.2.fa.psl'
+
+    candidates = find_indel.find(samfile, chrom,
+                            expand, outfile1,
+                            outfile2)
+    find_indel.indel_to_bed(candidates)
 
 
 if __name__=='__main__':
     main()
-

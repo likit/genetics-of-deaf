@@ -18,6 +18,10 @@ def find_indel(inpsl, insam, chrom, expand=1000):
         pe_reads = set()
         features = line.split()
         strand = features[8]
+
+        if int(features[-4]) < 2:  # no gaps in an alignment
+            continue
+
         tstart, tend = [int(i) for i in features[-1].split(',')[:2]]
         tblocks = [int(i) for i in features[-3].split(',')[:2]]
         tstart = tstart + tblocks[0]
@@ -38,30 +42,38 @@ def indel_to_bed(candidates):
                                         indel.coverage,
                                         len(indel.supported_pe_reads))
 
+def find(samfile, chrom, expand, *pslfiles):
+    samfile = pysam.Samfile(samfile, 'rb')
+    candidates = {}
+    for pslfile in pslfiles:
+        for chrom, tstart, tend, pe_reads in \
+                find_indel(pslfile, samfile, chrom, expand):
+            if len(pe_reads) > 0:
+                try:
+                    indel = candidates["%s:%d-%d" %
+                                    (chrom, tstart, tend)]
+                except KeyError:
+                    indel = Indel(chrom, tstart, tend)
+                    candidates[repr(indel)] = indel
+
+                indel.coverage += 1
+                indel.supported_pe_reads.update(pe_reads)
+
+    return candidates
+
+
 def main():
-    inpsl = sys.argv[1]
-    insam = sys.argv[2]
+    pslfile = sys.argv[1]
+    samfile = sys.argv[2]
     expand = int(sys.argv[3])
     try:  # chromosome not specified: fetch reads from all chromosomes
         chrom = sys.argv[4]
     except IndexError:
         chrom = None
 
-    samfile = pysam.Samfile(insam, 'rb')
-    candidates = {}
-    for chrom, tstart, tend, pe_reads in find_indel(inpsl,
-                                                samfile, chrom, expand):
-        if len(pe_reads) > 0:
-            try:
-                indel = candidates["%s:%d-%d" % (chrom, tstart, tend)]
-            except KeyError:
-                indel = Indel(chrom, tstart, tend)
-                candidates[repr(indel)] = indel
-
-            indel.coverage += 1
-            indel.supported_pe_reads.update(pe_reads)
-
+    candidates = find(pslfile, samfile, chrom, expand)
     indel_to_bed(candidates)  # dump all indels to standard output in BED
+
 
 if __name__=='__main__':
     main()
