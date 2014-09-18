@@ -36,11 +36,12 @@ def find_indel(inpsl, insam, chrom, expand=1000):
 
 def indel_to_bed(candidates):
     for indel in candidates.itervalues():
-        print '%s\t%d\t%d\t.\t%d\t%d' % (indel.chrom,
+        print '%s\t%d\t%d\t.\t%d\t%d\t%d' % (indel.chrom,
                                         indel.start,
                                         indel.end,
                                         indel.coverage,
-                                        len(indel.supported_pe_reads))
+                                        len(indel.supported_pe_reads),
+                                        indel.end - indel.start)
 
 def find(samfile, chrom, expand, *pslfiles):
     samfile = pysam.Samfile(samfile, 'rb')
