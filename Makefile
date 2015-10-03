@@ -111,3 +111,31 @@ SelectVariantsIndels:
 
 VariantFiltrationIndels:
 	java -Xmx10g -cp $$GATK -jar $$GATK/GenomeAnalysisTK.jar -T VariantFiltration -R hg19.fa -V raw_indels.vcf --filterExpression "QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0" --filterName "my_indel_filter" -o filtered_indels.vcf
+
+GetUnmappedReadsAgilent:
+	for f in mapout/agilent_sample*[1-9].bam; do \
+		echo "Indexing " $$f; \
+		samtools index $$f; \
+		echo "Extracting unmapped paired reads from " $$f; \
+		samtools view -f 12 -b $$f > $$f.pe.unmapped; \
+		echo "Sorting unmapped paired reads from " $$f; \
+		samtools sort -n $$f.pe.unmapped -f $$f.sorted.pe.unmapped; \
+		echo "Converting BAM to FASTQ"; \
+		bedtools bamtofastq -i $$f.sorted.pe.unmapped -fq $$f.1.unmapped -fq2 $$f.2.unmapped; \
+		echo "Extracting singletons from " $$f; \
+		python protocol/orphan-reads.py $$f > $$f.se.unmapped; \
+	done
+
+GetUnmappedReadsTruseq:
+	for f in mapout/truseq_sample9.bam; do \
+		echo "Indexing " $$f; \
+		samtools index $$f; \
+		echo "Extracting unmapped paired reads from " $$f; \
+		samtools view -f 12 -b $$f > $$f.pe.unmapped; \
+		echo "Sorting unmapped paired reads from " $$f; \
+		samtools sort -n $$f.pe.unmapped -f $$f.sorted.pe.unmapped; \
+		echo "Converting BAM to FASTQ"; \
+		bedtools bamtofastq -i $$f.sorted.pe.unmapped -fq $$f.1.unmapped -fq2 $$f.2.unmapped; \
+		echo "Extracting singletons from " $$f; \
+		python protocol/orphan-reads.py $$f > $$f.se.unmapped; \
+	done
